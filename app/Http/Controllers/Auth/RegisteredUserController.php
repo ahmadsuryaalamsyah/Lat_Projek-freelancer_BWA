@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
+use App\Models\Wallet;
 
 class RegisteredUserController extends Controller
 {
@@ -31,15 +32,31 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'avatar' => ['required', 'image', 'mimes:png,jpg,jpeg,webp'],
+            'occupation' => ['required', 'string', 'max:255'],
+            'role' => ['required', 'string', 'in:project_freelancer,project_client'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
+        if($request->hasFile('avatar')) {
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+        }
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'occupation' => $request->occupation,
+            'avatar' => $avatarPath,
+            'connect' => 10,
             'password' => Hash::make($request->password),
         ]);
+
+        $user->assignRole($request->role);
+        
+        $wallet = new Wallet([
+            'balance' => 0
+        ]);
+        $user->wallet()->save($wallet);
 
         event(new Registered($user));
 

@@ -62,7 +62,7 @@ class User extends Authenticatable
         return $this->hasMany(ProjectApplicant::class, 'freelancer_id', 'id')->orderByDesc('id');
     }
     public function hasAppliedToProjects($projectId){
-        return projectsApplicant::where('project_id', $projectId)
+        return ProjectApplicant::where('project_id', $projectId)
         ->where('freelancer_id', $this->id)
         ->exists();
     }
