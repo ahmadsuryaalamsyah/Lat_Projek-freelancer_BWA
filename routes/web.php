@@ -1,9 +1,15 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FrontController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProjectApplicantController;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ProjectToolController;
+use App\Http\Controllers\ToolController;
 use App\Http\Controllers\WalletTransactionController;
+use App\Models\ProjectTool;
 use Illuminate\Support\Facades\Route;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
@@ -44,6 +50,26 @@ Route::middleware('auth')->group(function () {
             Route::get('/wallet/withdrawals', [WalletTransactionController::class, 'wallet_withdrawals'])->name('withdrawals');
             Route::resource('wallet_transactions', WalletTransactionController::class);
         });
+        Route::middleware('can:menage applicants')->group(function () {
+            Route::resource('project_applicants', ProjectApplicantController::class);
+        });
+
+        Route::middleware('can:manage projects')->group(function () {
+            Route::resource('projects', ProjectController::class);
+            Route::post('/project/{projectApplicant}/completed', [ProjectController::class, 'complete_project_store'])->name('complete_project.store');
+            Route::get('/project/{project}/tools', [ProjectController::class, 'tools'])->name('project.tools');
+            Route::post(('/project/{project}/tools/store'), [ProjectController::class, 'tools_store'])->name('projects.tools.store');
+            Route::resource('project_tools', ProjectToolController::class);
+       });
+
+       Route::middleware('can:manage categories')->group(function () {
+        Route::resource('categories', CategoryController::class);
+       });
+
+       Route::middleware('can:manage tools')->group(function () {
+        Route::resource('tools', ToolController::class);
+       });
+
     });
 
 });
